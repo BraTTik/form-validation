@@ -5,3 +5,4 @@ export * from "./is-number";
 export * from "./max";
 export * from "./min";
 export * from "./is-string-or-null";
+export * from "./custom";

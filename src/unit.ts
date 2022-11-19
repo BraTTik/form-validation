@@ -1,20 +1,24 @@
-import {Nullable, ValidationResult, Validator} from "./types";
+import { Nullable, ValidationResult, Validator } from "./types";
+import { Custom, IsRequired } from "./validators";
 import * as utils from "./utils";
-import {IsRequired} from "./validators";
 
-export abstract class Unit implements Validator, Nullable {
+interface IUnit {
+    validate: (value: any) => Promise<ValidationResult>;
+}
+
+export abstract class Unit implements IUnit, Nullable {
     protected validators: Validator[] = [];
     protected typeError = "Not a type";
     private isNullable = false;
     private isOptional = false;
 
-    validate(value: any) {
+    public readonly validate = async (value: any) => {
         let { hasError: isError, error } = this.validateType(value);
         const isOptional = this.isOptional && !utils.isFilledValue(value);
 
-        for (let validator of this.validators) {
+        for await (let validator of this.validators) {
             if (isError || isOptional) break;
-            const { hasError, error: text } = validator.validate(value);
+            const { hasError, error: text } = await validator.validate(value);
             isError = hasError;
             error = text;
         }
@@ -34,6 +38,12 @@ export abstract class Unit implements Validator, Nullable {
 
     optional(): this {
         this.isOptional = true;
+        return this;
+    }
+
+    custom (callback: (value: any) => (ValidationResult | Promise<ValidationResult>)): this {
+        const customValidator = new Custom(callback);
+        this.validators.push(customValidator);
         return this;
     }
 

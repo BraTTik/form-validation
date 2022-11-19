@@ -93,4 +93,32 @@ describe("Scheme tests", () => {
             expect(scheme.validate(notValid)).resolves.toEqual({ hasError: true, errors: { test2: error }});
         })
     })
+
+    describe("Scheme works with custom validator", () => {
+        const error = "Error";
+        const success = { test: "test" };
+        const fail = { test: "test2" };
+
+        it("custom validator", () => {
+            const scheme = new Scheme<typeof success>({ test: string().custom((value) => {
+                const hasError = value !== "test";
+                return { hasError, error: hasError ? error : null }
+                })})
+
+            expect(scheme.validate(success)).resolves.toEqual(isValid());
+            expect(scheme.validate(fail)).resolves.toEqual({ hasError: true, errors: { test: error }});
+        })
+
+        it("async custom validator", () => {
+            const scheme = new Scheme<typeof success>({ test: string().custom((value) => {
+                return new Promise(resolve => {
+                    const hasError = value !== "test";
+                    resolve({ hasError, error: hasError ? error : null })
+                })
+            })})
+
+            expect(scheme.validate(success)).resolves.toEqual(isValid());
+            expect(scheme.validate(fail)).resolves.toEqual({ hasError: true, errors: { test: error }});
+        })
+    })
 });
