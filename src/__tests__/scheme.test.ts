@@ -11,16 +11,16 @@ describe("Scheme tests", () => {
             const scheme = new Scheme<{ str: string; num: number }>({ str: string(), num: number() })
             const value = { str: "", num: 0 };
             const wrong = { str: 0, num: "" };
-            expect(scheme.validate(value)).toEqual({ hasError: false, errors: {} });
+            expect(scheme.validate(value)).resolves.toEqual({ hasError: false, errors: {} });
             // @ts-ignore
-            expect(scheme.validate(wrong)).toEqual({ hasError: true, errors: { str: "Not a string", num: "Not a number"}})
+            expect(scheme.validate(wrong)).resolves.toEqual({ hasError: true, errors: { str: "Not a string", num: "Not a number"}})
         });
 
         it("passes nullable values", () => {
             const scheme = new Scheme<{ str: string | null; num: number | null }>({ str: string().nullable(), num: number().nullable() });
             const values = { str: null, num: null };
 
-            expect(scheme.validate(values)).toEqual({ hasError: false, errors: {} });
+            expect(scheme.validate(values)).resolves.toEqual({ hasError: false, errors: {} });
         });
 
         it("doesn't pass nullable values if required", () => {
@@ -28,20 +28,23 @@ describe("Scheme tests", () => {
             const scheme = new Scheme<{ str: string | null; num: number | null }>({ str: string().isRequired(required).nullable(), num: number().isRequired(required).nullable() });
             const values = { str: null, num: null };
 
-            expect(scheme.validate(values)).toEqual({ hasError: true, errors: { str: required, num: required }});
+            expect(scheme.validate(values)).resolves.toEqual({ hasError: true, errors: { str: required, num: required }});
         });
     })
 
     describe("Scheme throws error on non object type", () => {
-        const scheme = new Scheme({});
+        it("Scheme throws error on non object type", () => {
+            const scheme = new Scheme({});
 
-        // @ts-ignore
-        expect(() => scheme.validate("string")).toThrow();
-        expect(() => scheme.validate(null)).toThrow();
-        // @ts-ignore
-        expect(() => scheme.validate(10)).toThrow();
-        // @ts-ignore
-        expect(() => scheme.validate(true)).toThrow();
+            // @ts-ignore
+            expect(() => scheme.validate("string")).rejects.toThrow();
+            expect( () => scheme.validate(null)).rejects.toThrow();
+            // @ts-ignore
+            expect( () => scheme.validate(10)).rejects.toThrow();
+            // @ts-ignore
+            expect( () => scheme.validate(true)).rejects.toThrow();
+
+        })
     })
 
     describe("Scheme conditional tests", () => {
@@ -58,7 +61,7 @@ describe("Scheme tests", () => {
                     },
                 ]);
 
-            expect(scheme.validate(valid)).toEqual({ hasError: true, errors: { test: error }});
+            expect(scheme.validate(valid)).resolves.toEqual({ hasError: true, errors: { test: error }});
         })
 
         it("Scheme doesn't check condition if falsy", () => {
@@ -70,7 +73,7 @@ describe("Scheme tests", () => {
                     },
                 ])
 
-            expect(scheme.validate(valid)).toEqual(isValid());
+            expect(scheme.validate(valid)).resolves.toEqual(isValid());
         })
 
         it("Scheme works with several conditions", () => {
@@ -86,8 +89,8 @@ describe("Scheme tests", () => {
                     }
                 ])
 
-            expect(scheme.validate(valid)).toEqual(isValid());
-            expect(scheme.validate(notValid)).toEqual({ hasError: true, errors: { test2: error }});
+            expect(scheme.validate(valid)).resolves.toEqual(isValid());
+            expect(scheme.validate(notValid)).resolves.toEqual({ hasError: true, errors: { test2: error }});
         })
     })
 });

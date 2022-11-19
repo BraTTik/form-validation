@@ -6,10 +6,9 @@ type SchemeValidationResult<T> = { hasError: boolean; errors: Partial<Record<key
 export type Condition<T extends Record<string, any>> = boolean | ((values: T) => boolean);
 
 export interface IScheme<T extends Record<string, any>> {
-    validate(value: T): SchemeValidationResult<T>;
+    validate(value: T): Promise<SchemeValidationResult<T>>;
     if(schemes: ConditionScheme<T>[]): this;
 }
-
 
 export class Scheme<T extends Record<string, any>> implements IScheme<T> {
     private conditions: ConditionScheme<T>[] = [];
@@ -17,9 +16,9 @@ export class Scheme<T extends Record<string, any>> implements IScheme<T> {
     constructor (private scheme: Partial<Record<keyof T, Unit>>) {
     }
 
-    public readonly validate = (values: T) => {
+    public readonly validate = async (values: T) => {
         this.checkValueType(values);
-        const baseValidation = this.baseValidation(values);
+        const baseValidation = await this.baseValidation(values);
 
         return this.conditionValidation(values, baseValidation);
     }
@@ -37,18 +36,18 @@ export class Scheme<T extends Record<string, any>> implements IScheme<T> {
         }
     }
 
-    private baseValidation = (values: T) => {
+    private baseValidation = async (values: T) => {
         let isError = false;
         const errors: Partial<Record<keyof T, string>> = {};
 
         const schemeKeys = Object.keys(this.scheme) as (keyof T)[];
 
-        for (const key of schemeKeys) {
+        for await (const key of schemeKeys) {
             const value = values[key];
             const validator = this.scheme[key];
 
             if (validator) {
-                const { hasError, error } = validator.validate(value);
+                const { hasError, error } = await validator.validate(value);
 
                 if (hasError) {
                     isError = true;
@@ -60,13 +59,13 @@ export class Scheme<T extends Record<string, any>> implements IScheme<T> {
         return { hasError: isError, errors }
     }
 
-    private conditionValidation = (values: T, baseValidationResult: SchemeValidationResult<T>) => {
+    private conditionValidation = async (values: T, baseValidationResult: SchemeValidationResult<T>) => {
         for (const { condition, scheme } of this.conditions) {
             const isPass: boolean = typeof condition === "function" ? condition(values) : condition;
 
             if (isPass) {
                 const s = new Scheme(scheme);
-                const result = s.validate(values);
+                const result = await s.validate(values);
 
                 if (result.hasError) {
                     baseValidationResult.hasError = true;
