@@ -1,39 +1,16 @@
-import { Nullable, Validator } from "./types";
-import {IsString, IsRequired, IsMatches} from "./validators";
+import { IsMatches } from "./validators";
+import { Unit } from "./unit";
 import * as utils from "./utils";
 
 
-class StringUnit implements Validator, Nullable {
-    private validators: Validator[] = [];
-    private isNullable = false;
+class StringUnit extends Unit {
+    protected typeError = "Not a string";
 
-    constructor() {
-        this.validators.push(new IsString());
-    }
-
-    validate(value: any) {
-        let isError = false;
-        let error = null;
-        const isOptional = this.isNullable && !utils.isFilledValue(value);
-
-        for (let validator of this.validators) {
-            if (isError || isOptional) break;
-            const { hasError, error: text } = validator.validate(value);
-            isError = hasError;
-            error = text;
+    constructor(typeError?: string) {
+        super();
+        if (typeError) {
+            this.typeError = typeError;
         }
-
-        return { hasError: isError, error };
-    }
-
-    nullable(): this {
-        this.isNullable = true;
-        return this;
-    }
-
-    isRequired (error?: string): this {
-        this.validators.push(new IsRequired(error))
-        return this;
     }
 
     isMatches (test: string | RegExp, error?: string): this {
@@ -41,7 +18,11 @@ class StringUnit implements Validator, Nullable {
 
         return this;
     }
+
+    protected typeCheck(value: any): boolean {
+        return utils.isString(value);
+    }
 }
 
 
-export const string = () => new StringUnit();
+export const string = (typeError?: string) => new StringUnit(typeError);

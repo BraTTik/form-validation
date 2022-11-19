@@ -1,5 +1,5 @@
-import { Scheme } from "./scheme";
-import {string} from "./string-unit";
+import { Scheme } from "../scheme";
+import {string} from "../string-unit";
 
 describe("Scheme tests", () => {
 

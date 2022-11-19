@@ -6,7 +6,7 @@ export class IsRequired implements Validator {
     }
 
     validate(value: any): ValidationResult {
-        const hasError = !utils.isNotNullable(value) || utils.isEmptyString(value);
+        const hasError = !utils.isFilledValue(value);
         return { hasError, error: hasError ? this.error : null }
     }
 

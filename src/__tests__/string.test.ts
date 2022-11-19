@@ -1,4 +1,4 @@
-import { string } from "./string-unit";
+import { string } from "../string-unit";
 
 
 const isValid = () => ({ hasError: false, error: null })
@@ -12,10 +12,12 @@ describe("String tests", () => {
     })
 
     it("string is required", () => {
-        const str = string().isRequired("String required");
+        const str = string().nullable().isRequired("String required");
 
         expect(str.validate("")).toEqual(notValid("String required"));
         expect(str.validate("value")).toEqual(isValid());
+        expect(str.validate(null)).toEqual(notValid("String required"));
+        expect(str.validate(undefined)).toEqual(notValid("String required"));
     })
 
     it("string can be nullable", () => {
@@ -31,8 +33,8 @@ describe("String tests", () => {
         expect(str.validate("tesx")).toEqual(notValid("Wrong Format"));
     })
 
-    it("string checks matches only is filled", () => {
-        const str = string().nullable().isMatches(/test/, "Wrong Format");
+    it("string checks optional value matches only is filled", () => {
+        const str = string().optional().isMatches(/test/, "Wrong Format");
         expect(str.validate("")).toEqual(isValid());
         expect(str.validate("test")).toEqual(isValid());
     })
