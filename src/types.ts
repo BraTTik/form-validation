@@ -7,7 +7,3 @@ export interface Validator {
 export interface Nullable {
     nullable(): this;
 }
-
-export interface StringUnit extends Validator {}
-
-export interface NumberUnit extends Validator {}
