@@ -100,3 +100,19 @@
     await scheme.validate({ name: "Unique name", amount: 10 }) // => { hasError: false; errors: {} };
     await scheme.validate({ name: "Not unique", amount: 10 }) // => { hasError: true; errors: { name: "Not unique" } }
 ```
+```scheme().if()``` Иногда бывает что условие для валидации нужны в динамике, когда условия одно поля зависят от значения другого,
+например, при заполнении контактов нужно чтобы хотя бы одно было заполнено либо email, либо телефон. Тут нам на помощь придёт условный метод
+```typescript
+    import { Scheme, string } from "form-validator";
+
+    const scheme = new Scheme({ email: string().isRequired(), phone: string().isRequired() }).if([
+        {
+            condition: ({ email }) => !Boolean(email),
+            scheme: { phone: string().nullable() }
+        },
+        {
+            condition: ({ phone }) => !Boolean(email),
+            scheme: { email: string().nullable() }
+        }
+    ]);
+```
