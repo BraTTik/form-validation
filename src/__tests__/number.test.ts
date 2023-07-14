@@ -13,6 +13,7 @@ describe("NumberUnit tests", () => {
         expect(num.validate(undefined)).resolves.toEqual(notValid("Not a number"));
         expect(num.validate({})).resolves.toEqual(notValid("Not a number"));
         expect(num.validate(false)).resolves.toEqual(notValid("Not a number"));
+        expect(num.validate(NaN)).resolves.toEqual(notValid("Not a number"));
     })
 
     it("NumberUnit passes validation if nullable", () => {
